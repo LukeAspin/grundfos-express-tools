@@ -6,7 +6,7 @@ from _types._types import FilePath
 from pandas._typing import FilePath, ReadBuffer
 from typing import Union, ParamSpec, Callable
 from utils.file_ops import read_files_in_dir
-from utils.Dataframe_tools import PSD_BOM_Updates
+from utils.Dataframe_tools import PSD
 from pandas import DataFrame
 from openpyxl import load_workbook, worksheet, Workbook
 from openpyxl.styles.borders import Border, Side
@@ -79,13 +79,13 @@ def process_sheet(file: tuple[Union[FilePath, ReadBuffer[bytes], bytes], str],
         print(err)
         return
     # Need to get the header dataframe and the psd_dataframe
-    header, psd_data, length = PSD_BOM_Updates()._get_df(
+    sheet_psd = PSD(
         io=data, sheet_name=sheet_name, use_header=use_header, header=None)
     # length = tuple of (psd_start_row,original size)
     if not bool(removal_note):
         removal_note = add_removal_note()
-    if header:
-        return fname, header, psd_data, length, removal_note, sheet_name
+    if use_header:
+        return fname, sheet_psd.header_data, psd_data, length, removal_note, sheet_name
     return fname, psd_data, length, removal_note, sheet_name
 
 

@@ -5,11 +5,67 @@ import inspect
 from pandas import DataFrame
 from pandas._typing import FilePath, ReadBuffer, DtypeArg, StorageOptions
 from pandas.util._decorators import Appender
-from typing import Optional, overload, Literal, Sequence, Hashable, Iterable, Callable
+from typing import Optional, overload, Literal, Sequence, Hashable, Iterable, Callable, Union, ParamSpec, Callable
 from _types._types import *
 
 
-class PSD_BOM_Updates:
+class PSD:
+
+    @overload
+    def __init__(self,
+                 io,
+                 # sheet name is str or int -> DataFrame
+                 sheet_name: str | int,
+                 header: int | Sequence[int] | None = ...,
+                 names=...,
+                 index_col: int | Sequence[int] | None = ...,
+                 usecols=...,
+                 squeeze: bool | None = ...,
+                 dtype: DtypeArg | None = ...,
+                 engine: Literal["xlrd", "openpyxl",
+                                 "odf", "pyxlsb"] | None = ...,
+                 converters=...,
+                 true_values: Iterable[Hashable] | None = ...,
+                 false_values: Iterable[Hashable] | None = ...,
+                 skiprows: Sequence[int] | int | Callable[[
+                     int], object] | None = ...,
+                 nrows: int | None = ...,
+                 na_values=...,
+                 keep_default_na: bool = ...,
+                 na_filter: bool = ...,
+                 verbose: bool = ...,
+                 parse_dates=...,
+                 date_parser=...,
+                 thousands: str | None = ...,
+                 decimal: str = ...,
+                 comment: str | None = ...,
+                 skipfooter: int = ...,
+                 convert_float: bool | None = ...,
+                 mangle_dupe_cols: bool = ...,
+                 storage_options: StorageOptions = ...,
+                 ) -> tuple[DataFrame, DataFrame, int]: ...
+
+    @Appender(pd.read_excel.__doc__, join='')
+    def __init__(self, **kwargs) -> Union[tuple[None, DataFrame, int], tuple[DataFrame, DataFrame, int]]:
+        kwargs = {k: v for k, v in kwargs.items()
+                  if k in inspect.signature(pd.read_excel).parameters.keys()}
+        df = pd.read_excel(**kwargs)  # Reading the dataframe
+        self.header_size = self._find_header_end(
+            df)  # Getting the size of the header
+        # Need to get the other dataframes
+        psd_df = df.loc[self.header_size-1:, :]
+        psd_df.reset_index(drop=True, inplace=True)
+        psd_df.columns = psd_df.loc[0, :]
+        psd_df.reset_index(drop=True, inplace=True)
+        psd_df.columns = self._name_blank_cols(psd_df)
+        ###ADDED###
+        psd_df.columns = self._remove_duplicates(psd_df)
+        psd_df = psd_df.drop(psd_df.index[0])
+        psd_df.reset_index(drop=True, inplace=True)
+        self.original_size = len(df)
+        # Lets Check if we are using the header df
+        self.header_data = df.loc[:self.header_size-2, :]
+        self.psd_data = psd_df
 
     def _find_header_end(self, df: DataFrame) -> int:
         for row in df.itertuples():
@@ -24,14 +80,14 @@ class PSD_BOM_Updates:
                 col[i] = f"No Name {count}"
                 count += 1
         return col
-    
-    def _remove_duplicates(self,df):
+
+    def _remove_duplicates(self, df):
         col = df.columns.to_list()
-        arr=[]
-        for i,item in enumerate(col):
+        arr = []
+        for i, item in enumerate(col):
             if item in arr and ('Dummy '+item):
                 if ('Dummy '+item) not in arr:
-                    if col.count(item)>2:
+                    if col.count(item) > 2:
                         for i1 in range(col.count(item)):
                             arr.append('Dummy '*(i1+1)+item)
                     else:
@@ -41,69 +97,6 @@ class PSD_BOM_Updates:
             else:
                 arr.append(item)
         return arr
-
-    @overload
-    def _get_df(
-        io,
-        # sheet name is str or int -> DataFrame
-        sheet_name: str | int,
-        header: int | Sequence[int] | None = ...,
-        names=...,
-        index_col: int | Sequence[int] | None = ...,
-        usecols=...,
-        squeeze: bool | None = ...,
-        dtype: DtypeArg | None = ...,
-        engine: Literal["xlrd", "openpyxl", "odf", "pyxlsb"] | None = ...,
-        converters=...,
-        true_values: Iterable[Hashable] | None = ...,
-        false_values: Iterable[Hashable] | None = ...,
-        skiprows: Sequence[int] | int | Callable[[int], object] | None = ...,
-        nrows: int | None = ...,
-        na_values=...,
-        keep_default_na: bool = ...,
-        na_filter: bool = ...,
-        verbose: bool = ...,
-        parse_dates=...,
-        date_parser=...,
-        thousands: str | None = ...,
-        decimal: str = ...,
-        comment: str | None = ...,
-        skipfooter: int = ...,
-        convert_float: bool | None = ...,
-        mangle_dupe_cols: bool = ...,
-        storage_options: StorageOptions = ...,
-    ) -> tuple[DataFrame, DataFrame, int]: ...
-
-    @Appender(pd.read_excel.__doc__, join='')
-    def _get_df(self, **kwargs) -> Union[tuple[None, DataFrame, int], tuple[DataFrame, DataFrame, int]]:
-        if bool(kwargs.pop('use_header', False)):
-            head_bool = True
-        else:
-            head_bool = False
-        kwargs = {k: v for k, v in kwargs.items()
-                  if k in inspect.signature(pd.read_excel).parameters.keys()}
-        df = pd.read_excel(**kwargs)  # Reading the dataframe
-        header_size = self._find_header_end(
-            df)  # Getting the size of the header
-        # Need to get the other dataframes
-        psd_df = df.loc[header_size-1:, :]
-        psd_df.reset_index(drop=True, inplace=True)
-        psd_df.columns = psd_df.loc[0, :]
-        psd_df.reset_index(drop=True, inplace=True)
-        psd_df.columns = self._name_blank_cols(psd_df)
-        ###ADDED###
-        psd_df.columns = self._remove_duplicates(psd_df)
-        
-        psd_df = psd_df.drop(psd_df.index[0])
-        psd_df.reset_index(drop=True, inplace=True)
-        original_length = len(df)
-
-        # Lets Check if we are using the header df
-        if head_bool == True:
-            header = df.loc[:header_size-2, :]
-            return header, psd_df, (header_size, original_length)
-        else:
-            return None, psd_df, (header_size, original_length)
 
 
 class PipeUpdates:
@@ -196,7 +189,8 @@ class PipeUpdates:
 
 def group_then_separate_by(psd_data: DataFrame, list_of_cols: list, pn_col: str, str_list: list[str]) -> tuple[DataFrame, DataFrame]:
     """list of cols are grouping categories. pn_col is the column that contains pns to find matches on."""
-    psd_data = psd_data.astype({pn_col: str_list.__getitem__(0).__class__}) #Converts BOM column into the same datatype as the pn list 
+    psd_data = psd_data.astype({pn_col: str_list.__getitem__(
+        0).__class__})  # Converts BOM column into the same datatype as the pn list
     groups = psd_data.groupby(
         list_of_cols)  # Had to play around with this to get the right groupings
 
@@ -215,19 +209,14 @@ def group_then_separate_by(psd_data: DataFrame, list_of_cols: list, pn_col: str,
             df_list_to_keep.append(frame)
 
     # Concatenating list of dfs to single dfs.
-    if len(df_list_to_remove)>0:
+    if len(df_list_to_remove) > 0:
         removals = pd.concat(df_list_to_remove)
     else:
-        removals=pd.DataFrame(np.nan,index=[0],columns=psd_data.columns)
+        removals = pd.DataFrame(np.nan, index=[0], columns=psd_data.columns)
     keep = pd.concat(df_list_to_keep)
 
     return removals, keep
 
+
 def find_and_replace():
     pass
-
-
-
-
-
-

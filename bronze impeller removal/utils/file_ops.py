@@ -34,11 +34,11 @@ def read_files_in_dir(dir:FolderPath)->Generator[Callable,None,None]:
     filenames = next(walk(dir), (None, None, []))[2]
     for file in filenames:
         _file=os.path.join(dir, file)
-        yield _read_single_file(_file)
+        yield read_single_file(_file)
 
 
 
-def _read_single_file(file:FilePath,chunksize:bytes=1024,is_pool_ready:bool=False)->tuple[bytes,str]:
+def read_single_file(file:FilePath,chunksize:bytes=1024,is_pool_ready:bool=False)->tuple[bytes,str]:
     f"""This method read in a file by a given chunk size.
         Params:
         file: This is a file like object with supports read, write, and append operations.
