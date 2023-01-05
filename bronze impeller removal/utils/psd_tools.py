@@ -108,13 +108,13 @@ def process_file(file: FilePath, sheet_list: list[str], output_dir: str, one_rem
     return ret
 
 
-def process_dir(dir, list_sheet_lists, output_dir: str, one_removal_note: bool):
+def process_dir(dir, list_sheet_lists, output_dir: str, one_modification_note: bool):
     files = read_files_in_dir(dir)
     ret = []
     for i, file in enumerate(files):
         if file[1].endswith(('.xls', '.xlsx', '.xlsm', '.xlsb', '.odf', '.odt')):
             ret.extend(process_file(
-                file, list_sheet_lists[i], output_dir, one_removal_note))
+                file, list_sheet_lists[i], output_dir, one_modification_note))
     return ret
 
 
