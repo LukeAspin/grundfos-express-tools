@@ -85,8 +85,8 @@ def process_sheet(file: tuple[Union[FilePath, ReadBuffer[bytes], bytes], str],
     if not bool(removal_note):
         removal_note = add_removal_note()
     if use_header:
-        return fname, sheet_psd.header_data, psd_data, length, removal_note, sheet_name
-    return fname, psd_data, length, removal_note, sheet_name
+        return fname, sheet_psd.header_data, sheet_psd.psd_data, sheet_psd.original_size, removal_note, sheet_name
+    return fname, sheet_psd.psd_data, sheet_psd.original_size, removal_note, sheet_name
 
 
 def process_file(file: FilePath, sheet_list: list[str], output_dir: str, one_removal_note: bool = False):
