@@ -85,8 +85,8 @@ def process_sheet(file: tuple[Union[FilePath, ReadBuffer[bytes], bytes], str],
     if not bool(removal_note):
         removal_note = add_removal_note()
     if use_header:
-        return fname, sheet_psd.header_data, sheet_psd.psd_data, sheet_psd.original_size, removal_note, sheet_name
-    return fname, sheet_psd.psd_data, sheet_psd.original_size, removal_note, sheet_name
+        return fname, sheet_psd.header_data, sheet_psd.psd_data, sheet_psd.length, removal_note, sheet_name
+    return fname, sheet_psd.psd_data, sheet_psd.length, removal_note, sheet_name
 
 
 def process_file(file: FilePath, sheet_list: list[str], output_dir: str, one_removal_note: bool = False):
@@ -131,8 +131,16 @@ def write_new_PSD(file_name,
     psd_startcol = 0
     end_row = psd_data[psd_data['Full Data'] == '[END]'].index.to_list()[0]
     psd_data = psd_data.iloc[:end_row]
-    removals, keep = grouping_func[0](
-        psd_data, *grouping_func[1], **grouping_func[2])
+    # Checking to see if we have just args, just kwargs, args and kwargs, or neither.
+    if len(grouping_func[1]) > 0 and len(grouping_func[2]) > 0:
+        removals, keep = grouping_func[0](psd_data, *grouping_func[1], **grouping_func[2])
+    elif len(grouping_func[1]) > 0:
+        removals, keep = grouping_func[0](psd_data, *grouping_func[1])
+    elif len(grouping_func[2]) > 0:
+        removals, keep = grouping_func[0](psd_data, **grouping_func[2])
+    else:
+        raise Exception(
+            "The function arguments are invalid, please make sure the arguments make sense and try again.")
     removals.loc[removals["Full Data"] == "[START]", "Full Data"] = ""
     new_row = pd.DataFrame({'ID': removal_note}, index=[0])
     removals = pd.concat([new_row, removals[:]]).reset_index()

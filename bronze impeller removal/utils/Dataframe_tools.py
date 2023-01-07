@@ -50,10 +50,10 @@ class PSD:
         kwargs = {k: v for k, v in kwargs.items()
                   if k in inspect.signature(pd.read_excel).parameters.keys()}
         df = pd.read_excel(**kwargs)  # Reading the dataframe
-        self.header_size = self._find_header_end(
+        header_size = self._find_header_end(
             df)  # Getting the size of the header
         # Need to get the other dataframes
-        psd_df = df.loc[self.header_size-1:, :]
+        psd_df = df.loc[header_size-1:, :]
         psd_df.reset_index(drop=True, inplace=True)
         psd_df.columns = psd_df.loc[0, :]
         psd_df.reset_index(drop=True, inplace=True)
@@ -62,10 +62,11 @@ class PSD:
         psd_df.columns = self._remove_duplicates(psd_df)
         psd_df = psd_df.drop(psd_df.index[0])
         psd_df.reset_index(drop=True, inplace=True)
-        self.original_size = len(df)
+        original_length = len(df)
         # Lets Check if we are using the header df
-        self.header_data = df.loc[:self.header_size-2, :]
+        self.header_data = df.loc[:header_size-2, :]
         self.psd_data = psd_df
+        self.length = (header_size, original_length)
 
     def _find_header_end(self, df: DataFrame) -> int:
         for row in df.itertuples():

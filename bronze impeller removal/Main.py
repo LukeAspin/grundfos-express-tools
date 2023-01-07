@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     #Only want to add an Impeller Sheet 
     sheet_list=[]
-    sheet='Impeller'
+    sheet='Case'
 
     for file in get_files_in_dir(MYDIR,('.xlsx')):
         sheet_list.append([sheet])

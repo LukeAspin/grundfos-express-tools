@@ -33,4 +33,4 @@ if __name__ == '__main__':
     tasks = process_dir(MYDIR, [['Case']], target_dir, False)
     add_function_to_task(tasks, find_and_replace, list(
         find_remove[0].keys()), list(find_remove[0].values()))
-    multi_PSD(tasks, write_new_PSD)
+    multi_PSD(tasks, find_and_replace)
