@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<instances></instances>
+<instances>
     <class name="Price_BOM_KP_Case">
         <instance name="ConTab_BOM_KP_Case_0001">
             <class>
