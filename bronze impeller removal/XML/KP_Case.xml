@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-
 <FirepondSPCDatabase version="3.0">
     <controlnode>
         <classcontroldata class="PumpOptions">
@@ -8,7 +7,6 @@
             </attributecontroldata>
         </classcontroldata>
     </controlnode>
-    <models />
     <instances>
         <class name="Price_BOM_KP_Case">
             <instance name="ConTab_BOM_KP_Case_0001">
